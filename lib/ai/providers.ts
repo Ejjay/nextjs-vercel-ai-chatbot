@@ -54,14 +54,5 @@ export const myProvider = {
         } satisfies GoogleGenerativeAIProviderOptions
       }
     })
-  },
-  imageModels: {
-    'small-model': google('gemini-1.5-pro-vision-latest', {
-      providerOptions: {
-        google: {
-          responseModalities: ['IMAGE']
-        } satisfies GoogleGenerativeAIProviderOptions
-      }
-    })
   }
 };

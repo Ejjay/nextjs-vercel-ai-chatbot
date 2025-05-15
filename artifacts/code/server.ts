@@ -71,10 +71,3 @@ export const codeDocumentHandler = createDocumentHandler<'code'>({
     return draftContent;
   },
 });
-
-// Fix the image model usage
-const { image } = await experimental_generateImage({
-  model: myProvider.imageModels['small-model'],
-  prompt: title,
-  n: 1,
-});
