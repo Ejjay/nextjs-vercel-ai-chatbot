@@ -2,6 +2,8 @@ import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
+  createLanguageModelV1,
+  type LanguageModelV1
 } from 'ai';
 import { xai } from '@ai-sdk/xai';
 import { isTestEnvironment } from '../constants';
@@ -11,17 +13,60 @@ import {
   reasoningModel,
   titleModel,
 } from './models.test';
-
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Get the API key from the environment variables and ensure it's defined
+// Initialize Google Generative AI client
 const apiKey = process.env.GOOGLE_API_KEY;
 if (!apiKey) {
-  throw new Error('GOOGLE_API_KEY is not set');
+  throw new Error('GOOGLE_API_KEY environment variable is not set');
 }
-
-// Initialize the Google AI client
 const genAI = new GoogleGenerativeAI(apiKey);
+
+// Create Gemini language model adapter
+const geminiModel: LanguageModelV1 = createLanguageModelV1({
+  modelId: 'gemini-1.5-flash',
+  providerIdentifier: 'google',
+  async doGenerate(options) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-1.5-flash',
+        generationConfig: {
+          temperature: options.temperature,
+          topK: options.topK,
+          topP: options.topP,
+          maxOutputTokens: options.maxTokens
+        }
+      });
+
+      // Convert messages to Gemini format
+      const contents = options.messages.map(message => ({
+        role: message.role === 'user' ? 'user' : 'model',
+        parts: [{ text: message.content }]
+      }));
+
+      const result = await model.generateContent({
+        contents,
+        tools: options.tools?.map(tool => ({
+          functionDeclarations: [tool]
+        }))
+      });
+
+      const response = await result.response;
+      
+      return {
+        text: response.text(),
+        usage: {
+          promptTokens: response.usageMetadata?.promptTokenCount || 0,
+          completionTokens: response.usageMetadata?.candidatesTokenCount || 0
+        },
+        finishReason: response.usageMetadata?.finishReason || 'stop'
+      };
+    } catch (error) {
+      console.error('Gemini API error:', error);
+      throw error;
+    }
+  }
+});
 
 export const myProvider = isTestEnvironment
   ? customProvider({
@@ -41,27 +86,9 @@ export const myProvider = isTestEnvironment
         }),
         'title-model': xai('grok-2-1212'),
         'artifact-model': xai('grok-2-1212'),
-        'gemini-model': wrapLanguageModel({
-          model: async ({ messages }) => {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const chat = model.startChat({
-              history: [],
-              generationConfig: {
-                temperature: 0.7,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 1024,
-              },
-            });
-
-            const response = await chat.sendMessage({ content: messages.join(' ') });
-            const text = await response.response.text();
-            return text;
-          },
-          middleware: [],
-        }),
+        'gemini-model': geminiModel
       },
       imageModels: {
-        'small-model': xai.image('grok-2-image'),
+        'small-model': xai.image('grok-2-image')
       },
     });
