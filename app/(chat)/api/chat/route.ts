@@ -147,7 +147,7 @@ export async function POST(request: Request) {
     const stream = createDataStream({
       execute: (dataStream) => {
         const result = streamText({
-          model: myProvider.languageModel(selectedChatModel),
+          model: myProvider.languageModels[selectedChatModel],
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages,
           maxSteps: 5,
