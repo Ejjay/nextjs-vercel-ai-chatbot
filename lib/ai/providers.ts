@@ -14,8 +14,14 @@ import {
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+// Get the API key from the environment variables and ensure it's defined
+const apiKey = process.env.GOOGLE_API_KEY;
+if (!apiKey) {
+  throw new Error('GOOGLE_API_KEY is not set');
+}
+
 // Initialize the Google AI client
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+const genAI = new GoogleGenerativeAI(apiKey);
 
 export const myProvider = isTestEnvironment
   ? customProvider({
@@ -36,7 +42,7 @@ export const myProvider = isTestEnvironment
         'title-model': xai('grok-2-1212'),
         'artifact-model': xai('grok-2-1212'),
         'gemini-model': async ({ messages }) => {
-          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+          const model = genAI.getGenerativeModel({ model: "gemini-pro" });
           const result = await model.generateContent(messages);
           const response = await result.response;
           return response.text();
