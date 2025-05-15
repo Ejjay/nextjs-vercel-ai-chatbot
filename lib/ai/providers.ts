@@ -2,7 +2,6 @@ import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
-  createLanguageModelV1,
   type LanguageModelV1
 } from 'ai';
 import { xai } from '@ai-sdk/xai';
@@ -22,50 +21,36 @@ if (!apiKey) {
 }
 const genAI = new GoogleGenerativeAI(apiKey);
 
-// Create Gemini language model adapter
-const geminiModel: LanguageModelV1 = createLanguageModelV1({
-  modelId: 'gemini-1.5-flash',
-  providerIdentifier: 'google',
-  async doGenerate(options) {
-    try {
-      const model = genAI.getGenerativeModel({
-        model: 'gemini-1.5-flash',
-        generationConfig: {
-          temperature: options.temperature,
-          topK: options.topK,
-          topP: options.topP,
-          maxOutputTokens: options.maxTokens
-        }
-      });
-
-      // Convert messages to Gemini format
-      const contents = options.messages.map(message => ({
-        role: message.role === 'user' ? 'user' : 'model',
-        parts: [{ text: message.content }]
-      }));
-
-      const result = await model.generateContent({
-        contents,
-        tools: options.tools?.map(tool => ({
-          functionDeclarations: [tool]
-        }))
-      });
-
-      const response = await result.response;
-      
-      return {
-        text: response.text(),
-        usage: {
-          promptTokens: response.usageMetadata?.promptTokenCount || 0,
-          completionTokens: response.usageMetadata?.candidatesTokenCount || 0
-        },
-        finishReason: response.usageMetadata?.finishReason || 'stop'
-      };
-    } catch (error) {
-      console.error('Gemini API error:', error);
-      throw error;
+// Define the Gemini model function
+async function geminiModelFunction({ messages }: { messages: any[] }): Promise<string> {
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-1.5-flash',
+    generationConfig: {
+      temperature: 0.7,
+      topK: 40,
+      topP: 0.95,
+      maxOutputTokens: 1024
     }
-  }
+  });
+
+  const chat = model.startChat({
+    history: [],
+    generationConfig: {
+      temperature: 0.7,
+      topK: 40,
+      topP: 0.95,
+      maxOutputTokens: 1024,
+    },
+  });
+
+  const response = await chat.sendMessage({ content: messages.join(' ') });
+  return await response.response.text();
+}
+
+// Create a wrapped language model
+const geminiWrappedModel = wrapLanguageModel({
+  model: geminiModelFunction,
+  middleware: []
 });
 
 export const myProvider = isTestEnvironment
@@ -86,7 +71,7 @@ export const myProvider = isTestEnvironment
         }),
         'title-model': xai('grok-2-1212'),
         'artifact-model': xai('grok-2-1212'),
-        'gemini-model': geminiModel
+        'gemini-model': geminiWrappedModel
       },
       imageModels: {
         'small-model': xai.image('grok-2-image')
