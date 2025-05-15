@@ -22,10 +22,10 @@ const genAI = new GoogleGenerativeAI(apiKey);
 
 // Gemini model implementation as a LanguageModelV1-compatible object
 const geminiModelImplementation = {
-  specificationVersion: 'v1',
-  provider: 'google',
+  specificationVersion: 'v1' as const, // Added type assertion
+  provider: 'google' as const, // Added type assertion
   modelId: 'gemini-1.5-flash',
-  defaultObjectGenerationMode: 'completion',
+  defaultObjectGenerationMode: 'completion' as const, // Added type assertion
   async doGenerate({ messages }: { messages: any[] }) {
     const model = genAI.getGenerativeModel({
       model: 'gemini-1.5-flash',
