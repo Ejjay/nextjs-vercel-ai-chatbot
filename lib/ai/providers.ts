@@ -41,12 +41,25 @@ export const myProvider = isTestEnvironment
         }),
         'title-model': xai('grok-2-1212'),
         'artifact-model': xai('grok-2-1212'),
-        'gemini-model': async ({ messages }) => {
-          const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-          const result = await model.generateContent(messages);
-          const response = await result.response;
-          return response.text();
-        },
+        'gemini-model': wrapLanguageModel({
+          model: async ({ messages }) => {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const chat = model.startChat({
+              history: [],
+              generationConfig: {
+                temperature: 0.7,
+                topK: 40,
+                topP: 0.95,
+                maxOutputTokens: 1024,
+              },
+            });
+
+            const response = await chat.sendMessage({ content: messages.join(' ') });
+            const text = await response.response.text();
+            return text;
+          },
+          middleware: [],
+        }),
       },
       imageModels: {
         'small-model': xai.image('grok-2-image'),
