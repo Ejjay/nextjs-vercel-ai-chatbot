@@ -26,32 +26,30 @@ const geminiModelImplementation = {
   provider: 'google',
   modelId: 'gemini-1.5-flash',
   defaultObjectGenerationMode: 'completion',
-  async invoke({ messages }: { messages: any[] }) {
-    try {
-      const model = genAI.getGenerativeModel({ 
-        model: 'gemini-1.5-flash',
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 1024
-        }
-      });
+  async doGenerate({ messages }: { messages: any[] }) {
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 1024
+      }
+    });
 
-      // Convert messages to Gemini format
-      const contents = messages.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }]
-      }));
+    // Convert messages to Gemini format
+    const contents = messages.map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.content }]
+    }));
 
-      const result = await model.generateContent({ contents });
-      const text = await result.response.text();
-      return { content: text };
-    } catch (error) {
-      console.error('Gemini API error:', error);
-      throw error;
-    }
-  }
+    const result = await model.generateContent({ contents });
+    const text = await result.response.text();
+    return { content: text };
+  },
+  async doStream() {
+    throw new Error('Streaming not implemented.');
+  },
 };
 
 export const myProvider = isTestEnvironment
