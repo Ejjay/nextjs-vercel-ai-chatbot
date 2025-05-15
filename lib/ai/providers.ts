@@ -12,6 +12,8 @@ import {
   titleModel,
 } from './models.test';
 
+import { geminiFlash } from '@ai-sdk/gemini-flash';
+
 export const myProvider = isTestEnvironment
   ? customProvider({
       languageModels: {
@@ -30,6 +32,7 @@ export const myProvider = isTestEnvironment
         }),
         'title-model': xai('grok-2-1212'),
         'artifact-model': xai('grok-2-1212'),
+        'gemini-flash-model': geminiFlash('gemini-1.5-flash'),
       },
       imageModels: {
         'small-model': xai.image('grok-2-image'),
