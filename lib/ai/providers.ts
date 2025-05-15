@@ -12,7 +12,10 @@ import {
   titleModel,
 } from './models.test';
 
-import { geminiFlash } from '@ai-sdk/gemini-flash';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// Initialize the Google AI client
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 export const myProvider = isTestEnvironment
   ? customProvider({
@@ -32,7 +35,12 @@ export const myProvider = isTestEnvironment
         }),
         'title-model': xai('grok-2-1212'),
         'artifact-model': xai('grok-2-1212'),
-        'gemini-flash-model': geminiFlash('gemini-1.5-flash'),
+        'gemini-model': async ({ messages }) => {
+          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+          const result = await model.generateContent(messages);
+          const response = await result.response;
+          return response.text();
+        },
       },
       imageModels: {
         'small-model': xai.image('grok-2-image'),
