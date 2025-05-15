@@ -20,31 +20,34 @@ if (!apiKey) {
 }
 const genAI = new GoogleGenerativeAI(apiKey);
 
-// Gemini model implementation
-const geminiModelImplementation = async ({ messages }: { messages: any[] }): Promise<{ content: string }> => {
-  try {
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash',
-      generationConfig: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 1024
-      }
-    });
+// Gemini model implementation as an object with invoke method
+const geminiModelImplementation = {
+  // The .invoke method matches what wrapLanguageModel expects!
+  async invoke({ messages }: { messages: any[] }) {
+    try {
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-1.5-flash',
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024
+        }
+      });
 
-    // Convert messages to Gemini format
-    const contents = messages.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }]
-    }));
+      // Convert messages to Gemini format
+      const contents = messages.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.content }]
+      }));
 
-    const result = await model.generateContent({ contents });
-    const text = await result.response.text();
-    return { content: text };
-  } catch (error) {
-    console.error('Gemini API error:', error);
-    throw error;
+      const result = await model.generateContent({ contents });
+      const text = await result.response.text();
+      return { content: text };
+    } catch (error) {
+      console.error('Gemini API error:', error);
+      throw error;
+    }
   }
 };
 
@@ -67,7 +70,7 @@ export const myProvider = isTestEnvironment
         'title-model': xai('grok-2-1212'),
         'artifact-model': xai('grok-2-1212'),
         'gemini-model': wrapLanguageModel({
-          model: geminiModelImplementation,
+          model: geminiModelImplementation, // <-- THIS IS NOW AN OBJECT WITH .invoke!
           middleware: []
         })
       },
