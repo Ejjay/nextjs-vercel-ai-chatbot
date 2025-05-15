@@ -10,7 +10,7 @@ export const codeDocumentHandler = createDocumentHandler<'code'>({
     let draftContent = '';
 
     const { fullStream } = streamObject({
-      model: myProvider.imageModels['small-model'],
+      model: myProvider.languageModels['artifact-model'],
       system: codePrompt,
       prompt: title,
       schema: z.object({
