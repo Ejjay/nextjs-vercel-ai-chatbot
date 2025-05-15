@@ -9,7 +9,7 @@ import {
   useRef,
 } from 'react';
 import { ArtifactKind, UIArtifact } from './artifact';
-import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from './icons';
+import { FileIcon, FullscreenIcon, LoaderIcon } from './icons';
 import { cn, fetcher } from '@/lib/utils';
 import { Document } from '@/lib/db/schema';
 import { InlineDocumentSkeleton } from './document-skeleton';
@@ -20,7 +20,9 @@ import { CodeEditor } from './code-editor';
 import { useArtifact } from '@/hooks/use-artifact';
 import equal from 'fast-deep-equal';
 import { SpreadsheetEditor } from './sheet-editor';
-import { ImageEditor } from './image-editor';
+
+// Update the type to exclude 'image'
+type DocumentKind = 'text' | 'code' | 'sheet';
 
 interface DocumentPreviewProps {
   isReadonly: boolean;
@@ -129,15 +131,9 @@ const LoadingSkeleton = ({ artifactKind }: { artifactKind: ArtifactKind }) => (
         <FullscreenIcon />
       </div>
     </div>
-    {artifactKind === 'image' ? (
-      <div className="overflow-y-scroll border rounded-b-2xl bg-muted border-t-0 dark:border-zinc-700">
-        <div className="animate-pulse h-[257px] bg-muted-foreground/20 w-full" />
-      </div>
-    ) : (
-      <div className="overflow-y-scroll border rounded-b-2xl p-8 pt-4 bg-muted border-t-0 dark:border-zinc-700">
-        <InlineDocumentSkeleton />
-      </div>
-    )}
+    <div className="overflow-y-scroll border rounded-b-2xl p-8 pt-4 bg-muted border-t-0 dark:border-zinc-700">
+      <InlineDocumentSkeleton />
+    </div>
   </div>
 );
 
@@ -205,7 +201,7 @@ const PureDocumentHeader = ({
   isStreaming,
 }: {
   title: string;
-  kind: ArtifactKind;
+  kind: DocumentKind;
   isStreaming: boolean;
 }) => (
   <div className="p-4 border rounded-t-2xl flex flex-row gap-2 items-start sm:items-center justify-between dark:bg-muted border-b-0 dark:border-zinc-700">
@@ -215,8 +211,6 @@ const PureDocumentHeader = ({
           <div className="animate-spin">
             <LoaderIcon />
           </div>
-        ) : kind === 'image' ? (
-          <ImageIcon />
         ) : (
           <FileIcon />
         )}
@@ -270,15 +264,6 @@ const DocumentContent = ({ document }: { document: Document }) => {
             <SpreadsheetEditor {...commonProps} />
           </div>
         </div>
-      ) : document.kind === 'image' ? (
-        <ImageEditor
-          title={document.title}
-          content={document.content ?? ''}
-          isCurrentVersion={true}
-          currentVersionIndex={0}
-          status={artifact.status}
-          isInline={true}
-        />
       ) : null}
     </div>
   );
