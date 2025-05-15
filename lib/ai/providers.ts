@@ -3,7 +3,7 @@ import {
   extractReasoningMiddleware,
   wrapLanguageModel,
   type LanguageModelV1CallOptions,
-  type LanguageModelV1Message
+  type Message // Corrected import
 } from 'ai';
 import { xai } from '@ai-sdk/xai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -29,8 +29,8 @@ const geminiModelImplementation = {
       }
     });
 
-    // Properly typed message conversion
-    const contents = (options.input as LanguageModelV1Message[]).map(msg => ({
+    // Use correct message type and accessor
+    const contents = (options.input as Message[]).map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }]
     }));
