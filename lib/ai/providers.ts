@@ -20,6 +20,7 @@ const googleProvider = google('gemini-1.5-pro-latest', {
 // - "chat-model": Default Gemini Pro for standard chat interactions
 // - "chat-model-reasoning": Gemini Pro with added thinking capabilities
 // - "gemini-model": Gemini Flash configured for fast responses
+// - "artifact-model": Configured for artifact generation
 export const myProvider = {
   languageModels: {
     'chat-model': googleProvider,
@@ -40,7 +41,13 @@ export const myProvider = {
       }
     }),
     'title-model': google('gemini-1.5-flash', {
-      // Optimized settings for title generation
+      providerOptions: {
+        google: {
+          responseModalities: ['TEXT']
+        } satisfies GoogleGenerativeAIProviderOptions
+      }
+    }),
+    'artifact-model': google('gemini-1.5-pro-latest', {
       providerOptions: {
         google: {
           responseModalities: ['TEXT']
