@@ -1,65 +1,43 @@
-import {
-  customProvider,
-  extractReasoningMiddleware,
-  wrapLanguageModel,
-  type LanguageModelV1CallOptions,
-  type Message // Corrected import
-} from 'ai';
-import { xai } from '@ai-sdk/xai';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { google } from '@ai-sdk/google';
+import type { GoogleGenerativeAIProviderOptions } from '@ai-sdk/google';
 
-// Initialize Google AI client
-const apiKey = process.env.GOOGLE_API_KEY;
-if (!apiKey) throw new Error('GOOGLE_API_KEY environment variable is not set');
-const genAI = new GoogleGenerativeAI(apiKey);
+// Initialize with API key from environment variables
+if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+  throw new Error('GOOGLE_GENERATIVE_AI_API_KEY environment variable is not set');
+}
 
-const geminiModelImplementation = {
-  specificationVersion: 'v1' as const,
-  provider: 'google' as const,
-  modelId: 'gemini-1.5-flash',
-  defaultObjectGenerationMode: 'tool' as const,
-  async doGenerate(options: LanguageModelV1CallOptions) {
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      generationConfig: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 1024
+// Create a custom Google provider instance for Gemini Pro with safety settings
+const googleProvider = google('gemini-1.5-pro-latest', {
+  safetySettings: [
+    {
+      category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+      threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+    }
+  ]
+});
+
+// Export provider configuration with individual models:
+// - "chat-model": Default Gemini Pro for standard chat interactions
+// - "chat-model-reasoning": Gemini Pro with added thinking capabilities
+// - "gemini-model": Gemini Flash configured for fast responses
+export const myProvider = {
+  languageModels: {
+    'chat-model': googleProvider,
+    'chat-model-reasoning': google('gemini-1.5-pro-latest', {
+      providerOptions: {
+        google: {
+          thinkingConfig: {
+            thinkingBudget: 2048
+          }
+        } satisfies GoogleGenerativeAIProviderOptions
       }
-    });
-
-    // Use correct message type and accessor
-    const contents = (options.input as Message[]).map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }]
-    }));
-
-    const result = await model.generateContent({ contents });
-    return {
-      text: await result.response.text(),
-      finishReason: 'stop',
-      usage: { promptTokens: 0, completionTokens: 0 }
-    };
-  },
-  async doStream() {
-    throw new Error('Streaming not implemented');
+    }),
+    'gemini-model': google('gemini-1.5-flash', {
+      providerOptions: {
+        google: {
+          responseModalities: ['TEXT']
+        } satisfies GoogleGenerativeAIProviderOptions
+      }
+    })
   }
 };
-
-export const myProvider = customProvider({
-  languageModels: {
-    'chat-model': xai('grok-2-vision-1212'),
-    'chat-model-reasoning': wrapLanguageModel({
-      model: xai('grok-3-mini-beta'),
-      middleware: extractReasoningMiddleware({ tagName: 'think' })
-    }),
-    'gemini-model': wrapLanguageModel({
-      model: geminiModelImplementation,
-      middleware: []
-    })
-  },
-  imageModels: {
-    'small-model': xai.image('grok-2-image')
-  }
-});
