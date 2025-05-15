@@ -38,6 +38,14 @@ export const myProvider = {
           responseModalities: ['TEXT']
         } satisfies GoogleGenerativeAIProviderOptions
       }
+    }),
+    'title-model': google('gemini-1.5-flash', {
+      // Optimized settings for title generation
+      providerOptions: {
+        google: {
+          responseModalities: ['TEXT']
+        } satisfies GoogleGenerativeAIProviderOptions
+      }
     })
   }
 };
