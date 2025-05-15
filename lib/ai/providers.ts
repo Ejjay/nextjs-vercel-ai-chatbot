@@ -21,7 +21,7 @@ if (!apiKey) {
 const genAI = new GoogleGenerativeAI(apiKey);
 
 // Gemini model implementation
-const geminiModelImplementation = async ({ messages }: { messages: any[] }) => {
+const geminiModelImplementation = async ({ messages }: { messages: any[] }): Promise<{ content: string }> => {
   try {
     const model = genAI.getGenerativeModel({ 
       model: 'gemini-1.5-flash',
@@ -40,7 +40,8 @@ const geminiModelImplementation = async ({ messages }: { messages: any[] }) => {
     }));
 
     const result = await model.generateContent({ contents });
-    return result.response.text();
+    const text = await result.response.text();
+    return { content: text };
   } catch (error) {
     console.error('Gemini API error:', error);
     throw error;
