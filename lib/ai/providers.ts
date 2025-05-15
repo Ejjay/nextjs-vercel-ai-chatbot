@@ -3,7 +3,7 @@ import {
   extractReasoningMiddleware,
   wrapLanguageModel,
   type LanguageModelV1CallOptions,
-  type LanguageModelV1Message
+  type Message
 } from 'ai';
 import { xai } from '@ai-sdk/xai';
 import { isTestEnvironment } from '../constants';
@@ -16,14 +16,13 @@ if (!apiKey) {
 }
 const genAI = new GoogleGenerativeAI(apiKey);
 
-// Gemini model implementation with proper typing
+// Gemini model implementation with correct typing
 const geminiModelImplementation = {
   specificationVersion: 'v1' as const,
   provider: 'google' as const,
   modelId: 'gemini-1.5-flash',
-  defaultObjectGenerationMode: 'auto' as const,
+  defaultObjectGenerationMode: 'tool' as const,
   async doGenerate(options: LanguageModelV1CallOptions) {
-    const { messages } = options;
     const model = genAI.getGenerativeModel({
       model: 'gemini-1.5-flash',
       generationConfig: {
@@ -34,8 +33,8 @@ const geminiModelImplementation = {
       }
     });
 
-    // Convert messages with proper typing
-    const contents = messages.map((msg: LanguageModelV1Message) => ({
+    // Convert messages with proper Message type
+    const contents = options.messages.map((msg: Message) => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }]
     }));
