@@ -22,10 +22,10 @@ const genAI = new GoogleGenerativeAI(apiKey);
 
 // Gemini model implementation as a LanguageModelV1-compatible object
 const geminiModelImplementation = {
-  specificationVersion: 'v1' as const, // Added type assertion
-  provider: 'google' as const, // Added type assertion
+  specificationVersion: 'v1' as const,
+  provider: 'google' as const,
   modelId: 'gemini-1.5-flash',
-  defaultObjectGenerationMode: 'completion' as const, // Added type assertion
+  defaultObjectGenerationMode: 'tool' as const, // Ensure this matches the expected type
   async doGenerate({ messages }: { messages: any[] }) {
     const model = genAI.getGenerativeModel({
       model: 'gemini-1.5-flash',
@@ -71,7 +71,7 @@ export const myProvider = isTestEnvironment
         'title-model': xai('grok-2-1212'),
         'artifact-model': xai('grok-2-1212'),
         'gemini-model': wrapLanguageModel({
-          model: geminiModelImplementation, // this now has all required fields!
+          model: geminiModelImplementation,
           middleware: []
         })
       },
