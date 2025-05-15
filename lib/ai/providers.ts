@@ -2,7 +2,6 @@ import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
-  type LanguageModelV1
 } from 'ai';
 import { xai } from '@ai-sdk/xai';
 import { isTestEnvironment } from '../constants';
@@ -14,44 +13,39 @@ import {
 } from './models.test';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize Google Generative AI client
+// Initialize Google AI client
 const apiKey = process.env.GOOGLE_API_KEY;
 if (!apiKey) {
   throw new Error('GOOGLE_API_KEY environment variable is not set');
 }
 const genAI = new GoogleGenerativeAI(apiKey);
 
-// Define the Gemini model function
-async function geminiModelFunction({ messages }: { messages: any[] }): Promise<string> {
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
-    generationConfig: {
-      temperature: 0.7,
-      topK: 40,
-      topP: 0.95,
-      maxOutputTokens: 1024
-    }
-  });
+// Gemini model implementation
+const geminiModelImplementation = async ({ messages }: { messages: any[] }) => {
+  try {
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-1.5-flash',
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 1024
+      }
+    });
 
-  const chat = model.startChat({
-    history: [],
-    generationConfig: {
-      temperature: 0.7,
-      topK: 40,
-      topP: 0.95,
-      maxOutputTokens: 1024,
-    },
-  });
+    // Convert messages to Gemini format
+    const contents = messages.map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.content }]
+    }));
 
-  const response = await chat.sendMessage({ content: messages.join(' ') });
-  return await response.response.text();
-}
-
-// Create a wrapped language model
-const geminiWrappedModel = wrapLanguageModel({
-  model: geminiModelFunction,
-  middleware: []
-});
+    const result = await model.generateContent({ contents });
+    return result.response.text();
+  } catch (error) {
+    console.error('Gemini API error:', error);
+    throw error;
+  }
+};
 
 export const myProvider = isTestEnvironment
   ? customProvider({
@@ -71,7 +65,10 @@ export const myProvider = isTestEnvironment
         }),
         'title-model': xai('grok-2-1212'),
         'artifact-model': xai('grok-2-1212'),
-        'gemini-model': geminiWrappedModel
+        'gemini-model': wrapLanguageModel({
+          model: geminiModelImplementation,
+          middleware: []
+        })
       },
       imageModels: {
         'small-model': xai.image('grok-2-image')
