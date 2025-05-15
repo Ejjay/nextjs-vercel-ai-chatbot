@@ -20,9 +20,12 @@ if (!apiKey) {
 }
 const genAI = new GoogleGenerativeAI(apiKey);
 
-// Gemini model implementation as an object with invoke method
+// Gemini model implementation as a LanguageModelV1-compatible object
 const geminiModelImplementation = {
-  // The .invoke method matches what wrapLanguageModel expects!
+  specificationVersion: 'v1',
+  provider: 'google',
+  modelId: 'gemini-1.5-flash',
+  defaultObjectGenerationMode: 'completion',
   async invoke({ messages }: { messages: any[] }) {
     try {
       const model = genAI.getGenerativeModel({ 
@@ -70,7 +73,7 @@ export const myProvider = isTestEnvironment
         'title-model': xai('grok-2-1212'),
         'artifact-model': xai('grok-2-1212'),
         'gemini-model': wrapLanguageModel({
-          model: geminiModelImplementation, // <-- THIS IS NOW AN OBJECT WITH .invoke!
+          model: geminiModelImplementation, // this now has all required fields!
           middleware: []
         })
       },
