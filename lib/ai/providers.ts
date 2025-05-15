@@ -2,15 +2,11 @@ import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
+  type LanguageModelV1CallOptions,
+  type LanguageModelV1Message
 } from 'ai';
 import { xai } from '@ai-sdk/xai';
 import { isTestEnvironment } from '../constants';
-import {
-  artifactModel,
-  chatModel,
-  reasoningModel,
-  titleModel,
-} from './models.test';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize Google AI client
@@ -20,13 +16,14 @@ if (!apiKey) {
 }
 const genAI = new GoogleGenerativeAI(apiKey);
 
-// Gemini model implementation as a LanguageModelV1-compatible object
+// Gemini model implementation with proper typing
 const geminiModelImplementation = {
   specificationVersion: 'v1' as const,
   provider: 'google' as const,
   modelId: 'gemini-1.5-flash',
-  defaultObjectGenerationMode: 'tool' as const, // Ensure this matches the expected type
-  async doGenerate({ messages }: { messages: any[] }) {
+  defaultObjectGenerationMode: 'auto' as const,
+  async doGenerate(options: LanguageModelV1CallOptions) {
+    const { messages } = options;
     const model = genAI.getGenerativeModel({
       model: 'gemini-1.5-flash',
       generationConfig: {
@@ -37,45 +34,38 @@ const geminiModelImplementation = {
       }
     });
 
-    // Convert messages to Gemini format
-    const contents = messages.map(msg => ({
+    // Convert messages with proper typing
+    const contents = messages.map((msg: LanguageModelV1Message) => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }]
     }));
 
     const result = await model.generateContent({ contents });
     const text = await result.response.text();
-    return { content: text };
+    return { 
+      text,
+      finishReason: 'stop',
+      usage: { promptTokens: 0, completionTokens: 0 }
+    };
   },
   async doStream() {
     throw new Error('Streaming not implemented.');
   },
 };
 
-export const myProvider = isTestEnvironment
-  ? customProvider({
-      languageModels: {
-        'chat-model': chatModel,
-        'chat-model-reasoning': reasoningModel,
-        'title-model': titleModel,
-        'artifact-model': artifactModel,
-      },
+export const myProvider = customProvider({
+  languageModels: {
+    'chat-model': xai('grok-2-vision-1212'),
+    'chat-model-reasoning': wrapLanguageModel({
+      model: xai('grok-3-mini-beta'),
+      middleware: extractReasoningMiddleware({ tagName: 'think' }),
+    }),
+    'gemini-model': wrapLanguageModel({
+      model: geminiModelImplementation,
+      middleware: []
     })
-  : customProvider({
-      languageModels: {
-        'chat-model': xai('grok-2-vision-1212'),
-        'chat-model-reasoning': wrapLanguageModel({
-          model: xai('grok-3-mini-beta'),
-          middleware: extractReasoningMiddleware({ tagName: 'think' }),
-        }),
-        'title-model': xai('grok-2-1212'),
-        'artifact-model': xai('grok-2-1212'),
-        'gemini-model': wrapLanguageModel({
-          model: geminiModelImplementation,
-          middleware: []
-        })
-      },
-      imageModels: {
-        'small-model': xai.image('grok-2-image')
-      },
-    });
+  },
+  imageModels: {
+    'small-model': xai.image('grok-2-image')
+  },
+});
