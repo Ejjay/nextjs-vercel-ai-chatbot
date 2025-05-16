@@ -21,38 +21,23 @@ const googleProvider = google('gemini-1.5-pro-latest', {
 // - "chat-model-reasoning": Gemini Pro with added thinking capabilities
 // - "gemini-model": Gemini Flash configured for fast responses
 // - "artifact-model": Configured for artifact generation
+
 export const myProvider = {
   languageModels: {
     'chat-model': googleProvider,
     'chat-model-reasoning': google('gemini-1.5-pro-latest', {
-      providerOptions: {
-        google: {
-          thinkingConfig: {
-            thinkingBudget: 2048
-          }
-        } satisfies GoogleGenerativeAIProviderOptions
+      thinkingConfig: {
+        thinkingBudget: 2048
       }
     }),
     'gemini-model': google('gemini-1.5-flash', {
-      providerOptions: {
-        google: {
-          responseModalities: ['TEXT']
-        } satisfies GoogleGenerativeAIProviderOptions
-      }
+      responseModalities: ['TEXT']
     }),
     'title-model': google('gemini-1.5-flash', {
-      providerOptions: {
-        google: {
-          responseModalities: ['TEXT']
-        } satisfies GoogleGenerativeAIProviderOptions
-      }
+      responseModalities: ['TEXT']
     }),
     'artifact-model': google('gemini-1.5-pro-latest', {
-      providerOptions: {
-        google: {
-          responseModalities: ['TEXT']
-        } satisfies GoogleGenerativeAIProviderOptions
-      }
+      responseModalities: ['TEXT']
     })
   }
 };
