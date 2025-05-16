@@ -1,4 +1,5 @@
 import { google } from '@ai-sdk/google';
+import { GoogleGenerativeAIProviderOptions } from '@ai-sdk/google';
 
 // Initialize with API key from environment variables
 if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
@@ -14,11 +15,10 @@ export const myProvider = {
       }]
     }),
     'chat-model-reasoning': google('gemini-1.5-pro-latest', {
-      // Official configuration pattern from Google's docs
-      generationConfig: {
-        maxOutputTokens: 2048
+      thinkingConfig: {
+        thinkingBudget: 2048
       }
-    }),
+    } satisfies GoogleGenerativeAIProviderOptions),
     'gemini-model': google('gemini-1.5-flash', {
       responseMimeType: 'text/plain'
     }),
