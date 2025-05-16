@@ -9,16 +9,16 @@ if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
 export const myProvider = {
   languageModels: {
     'chat-model': google('gemini-1.5-pro-latest', {
-      safetySettings: [{
-        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-        threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-      }]
+      safetySettings: [
+        {
+          category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+          threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+        }
+      ]
     }),
     'chat-model-reasoning': google('gemini-1.5-pro-latest', {
-      thinkingConfig: {
-        thinkingBudget: 2048
-      }
-    } satisfies GoogleGenerativeAIProviderOptions),
+      // No thinkingConfig property here
+    }),
     'gemini-model': google('gemini-1.5-flash', {
       responseMimeType: 'text/plain'
     }),
