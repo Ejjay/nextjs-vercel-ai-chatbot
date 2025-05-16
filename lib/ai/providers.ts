@@ -17,27 +17,38 @@ const googleProvider = google('gemini-1.5-pro-latest', {
 });
 
 // Export provider configuration with individual models:
-// - "chat-model": Default Gemini Pro for standard chat interactions
-// - "chat-model-reasoning": Gemini Pro with added thinking capabilities
-// - "gemini-model": Gemini Flash configured for fast responses
-// - "artifact-model": Configured for artifact generation
-
 export const myProvider = {
   languageModels: {
     'chat-model': googleProvider,
     'chat-model-reasoning': google('gemini-1.5-pro-latest', {
-      thinkingConfig: {
-        thinkingBudget: 2048
+      providerOptions: {
+        google: {
+          thinkingConfig: {
+            thinkingBudget: 2048
+          }
+        } satisfies GoogleGenerativeAIProviderOptions
       }
     }),
     'gemini-model': google('gemini-1.5-flash', {
-      responseModalities: ['TEXT']
+      providerOptions: {
+        google: {
+          responseModalities: ['TEXT']
+        } satisfies GoogleGenerativeAIProviderOptions
+      }
     }),
     'title-model': google('gemini-1.5-flash', {
-      responseModalities: ['TEXT']
+      providerOptions: {
+        google: {
+          responseModalities: ['TEXT']
+        } satisfies GoogleGenerativeAIProviderOptions
+      }
     }),
     'artifact-model': google('gemini-1.5-pro-latest', {
-      responseModalities: ['TEXT']
+      providerOptions: {
+        google: {
+          responseMod modalities: ['TEXT']
+        } satisfies GoogleGenerativeAIProviderOptions
+      }
     })
   }
 };
