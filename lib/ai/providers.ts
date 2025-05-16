@@ -16,7 +16,6 @@ export const myProvider = {
       ]
     }),
     'chat-model-reasoning': google('gemini-1.5-pro-latest', {
-      // No thinkingConfig property here
     }),
     'gemini-model': google('gemini-1.5-flash'),
     'artifact-model': google('gemini-1.5-pro-latest')
