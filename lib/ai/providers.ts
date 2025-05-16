@@ -1,5 +1,4 @@
-import { google } from '@ai-sdk/google';
-import { GoogleGenerativeAIProviderOptions } from '@ai-sdk/google';
+import { google, GoogleGenerativeAIProviderOptions } from '@ai-sdk/google';
 
 // Initialize with API key from environment variables
 if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
@@ -19,11 +18,7 @@ export const myProvider = {
     'chat-model-reasoning': google('gemini-1.5-pro-latest', {
       // No thinkingConfig property here
     }),
-    'gemini-model': google('gemini-1.5-flash', {
-      responseMimeType: 'text/plain'
-    }),
-    'artifact-model': google('gemini-1.5-pro-latest', {
-      responseMimeType: 'application/json'
-    })
+    'gemini-model': google('gemini-1.5-flash'),
+    'artifact-model': google('gemini-1.5-pro-latest')
   }
 };
