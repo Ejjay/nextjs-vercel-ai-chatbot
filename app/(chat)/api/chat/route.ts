@@ -236,7 +236,8 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof ChatSDKError) {
       return error.toResponse();
-    }
+    } 
+    return new Response('Internal Server Error', { status: 500 });
   }
 }
 
