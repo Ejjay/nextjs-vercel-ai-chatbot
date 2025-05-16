@@ -14,8 +14,9 @@ export const myProvider = {
       }]
     }),
     'chat-model-reasoning': google('gemini-1.5-pro-latest', {
-      systemInstruction: {
-        parts: [{ text: 'You are an AI assistant specialized in complex reasoning tasks' }]
+      // Official configuration pattern from Google's docs
+      generationConfig: {
+        maxOutputTokens: 2048
       }
     }),
     'gemini-model': google('gemini-1.5-flash', {
