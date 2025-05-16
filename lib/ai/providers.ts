@@ -46,7 +46,7 @@ export const myProvider = {
     'artifact-model': google('gemini-1.5-pro-latest', {
       providerOptions: {
         google: {
-          responseMod modalities: ['TEXT']
+          responseModalities: ['TEXT']
         } satisfies GoogleGenerativeAIProviderOptions
       }
     })
